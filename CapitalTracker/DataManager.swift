@@ -59,6 +59,11 @@ class DataManager: ObservableObject {
         saveEntries()
     }
     
+    func removeEntry(_ entry: CapitalEntry) {
+        entries.removeAll { $0.id == entry.id }
+        saveEntries()
+    }
+    
     func getEntryForDate(_ date: Date) -> CapitalEntry? {
         return entries.first { Calendar.current.isDate($0.date, inSameDayAs: date) }
     }
@@ -160,5 +165,17 @@ class DataManager: ObservableObject {
            let decodedEntries = try? JSONDecoder().decode([CapitalEntry].self, from: data) {
             entries = decodedEntries.sorted()
         }
+    }
+    
+    func resetAllData() {
+        entries = []
+        targetAmount = 0.0
+        targetDate = Calendar.current.date(from: DateComponents(year: 2026, month: 4, day: 1)) ?? Date()
+        selectedCurrency = .eur
+        
+        userDefaults.removeObject(forKey: entriesKey)
+        userDefaults.removeObject(forKey: targetAmountKey)
+        userDefaults.removeObject(forKey: targetDateKey)
+        userDefaults.removeObject(forKey: currencyKey)
     }
 }

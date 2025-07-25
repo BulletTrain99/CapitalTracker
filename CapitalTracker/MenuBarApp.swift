@@ -24,7 +24,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         popover = NSPopover()
         popover?.contentSize = NSSize(width: 600, height: 400)
         popover?.behavior = .transient
-        popover?.contentViewController = NSHostingController(rootView: ContentView(dataManager: dataManager))
+        
+        let contentView = ContentView(dataManager: dataManager)
+        let hostingController = NSHostingController(rootView: contentView)
+        popover?.contentViewController = hostingController
     }
     
     @objc func togglePopover() {
@@ -34,7 +37,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if popover.isShown {
                 popover.performClose(nil)
             } else {
-                popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+                popover.show(relativeTo: button.bounds, of: button, preferredEdge: .maxY)
                 popover.contentViewController?.view.window?.makeKey()
             }
         }

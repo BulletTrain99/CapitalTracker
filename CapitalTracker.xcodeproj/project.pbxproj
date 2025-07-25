@@ -19,7 +19,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1A0000FD293B7A9900000001 /* CapitalTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CapitalTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A000000293B7A9900000001 /* CapitalTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapitalTrackerApp.swift; sourceTree = "<group>"; };
 		1A000002293B7A9900000001 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		1A000006293B7A9A00000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -30,6 +29,7 @@
 		1A000014293B7AB000000001 /* ChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartView.swift; sourceTree = "<group>"; };
 		1A000016293B7AB000000001 /* MenuBarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarApp.swift; sourceTree = "<group>"; };
 		1A000018293B7AB000000001 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		1A0000FD293B7A9900000001 /* CapitalTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CapitalTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -43,6 +43,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1A000008293B7A9A00000001 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				1A000009293B7A9A00000001 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
 		1A0000F4293B7A9900000001 = {
 			isa = PBXGroup;
 			children = (
@@ -74,14 +82,6 @@
 				1A000008293B7A9A00000001 /* Preview Content */,
 			);
 			path = CapitalTracker;
-			sourceTree = "<group>";
-		};
-		1A000008293B7A9A00000001 /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-				1A000009293B7A9A00000001 /* Preview Assets.xcassets */,
-			);
-			path = "Preview Content";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -338,20 +338,20 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1A0000F8293B7A9900000001 /* Build configuration list for PBXProject "CapitalTracker" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				1A00000C293B7A9A00000001 /* Debug */,
-				1A00000D293B7A9A00000001 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		1A00000E293B7A9A00000001 /* Build configuration list for PBXNativeTarget "CapitalTracker" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1A00000F293B7A9A00000001 /* Debug */,
 				1A000010293B7A9A00000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1A0000F8293B7A9900000001 /* Build configuration list for PBXProject "CapitalTracker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A00000C293B7A9A00000001 /* Debug */,
+				1A00000D293B7A9A00000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -3,6 +3,7 @@ import SwiftUI
 struct ChartView: View {
     @ObservedObject var dataManager: DataManager
     @State private var showMovingAverages = true
+    @State private var showGoal = true
     @State private var selectedPeriod: MovingAveragePeriod = .sevenDay
     
     enum MovingAveragePeriod: String, CaseIterable {
@@ -33,6 +34,8 @@ struct ChartView: View {
                 }
                 
                 Spacer()
+                
+                Toggle("Show Goal", isOn: $showGoal)
             }
             .padding(.horizontal)
             
@@ -50,7 +53,7 @@ struct ChartView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                SimpleChartView(dataManager: dataManager, showMovingAverages: showMovingAverages, period: selectedPeriod.days)
+                SimpleChartView(dataManager: dataManager, showMovingAverages: showMovingAverages, showGoal: showGoal, period: selectedPeriod.days)
                     .frame(height: 280)
                     .padding()
                 
@@ -73,9 +76,11 @@ struct ChartView: View {
                         .foregroundColor(.purple)
                         .font(.caption)
                     
-                    Label("Target Goal", systemImage: "line.horizontal.3")
-                        .foregroundColor(.orange)
-                        .font(.caption)
+                    if showGoal {
+                        Label("Target Goal", systemImage: "line.horizontal.3")
+                            .foregroundColor(.orange)
+                            .font(.caption)
+                    }
                 }
                 .padding(.horizontal)
             }
@@ -86,6 +91,7 @@ struct ChartView: View {
 struct SimpleChartView: View {
     let dataManager: DataManager
     let showMovingAverages: Bool
+    let showGoal: Bool
     let period: Int
     
     var body: some View {
@@ -93,12 +99,18 @@ struct SimpleChartView: View {
             let entries = dataManager.entries
             let maxAmount = entries.map(\.amount).max() ?? 0
             let minAmount = entries.map(\.amount).min() ?? 0
-            let range = max(maxAmount - minAmount, 1000)
-            let adjustedMax = maxAmount + range * 0.1
-            let adjustedMin = minAmount - range * 0.1
+            let targetAmount = dataManager.targetAmount
+            
+            // Adjust range to include goal if visible
+            let effectiveMax = showGoal ? max(maxAmount, targetAmount) : maxAmount
+            let effectiveMin = showGoal ? min(minAmount, targetAmount) : minAmount
+            let range = effectiveMax - effectiveMin
+            let padding = max(range * 0.05, 100) // 5% padding or minimum 100 units
+            let adjustedMax = effectiveMax + padding
+            let adjustedMin = effectiveMin - padding
             
             ZStack {
-                // Background grid
+                // Background grid - horizontal lines
                 Path { path in
                     for i in 0...4 {
                         let y = geometry.size.height * CGFloat(i) / 4
@@ -108,9 +120,21 @@ struct SimpleChartView: View {
                 }
                 .stroke(Color.gray.opacity(0.3), lineWidth: 0.5)
                 
+                // X-axis vertical markers
+                Path { path in
+                    let entryCount = entries.count
+                    if entryCount > 1 {
+                        for i in 0..<entryCount {
+                            let x = geometry.size.width * CGFloat(i) / CGFloat(entryCount - 1)
+                            path.move(to: CGPoint(x: x, y: 0))
+                            path.addLine(to: CGPoint(x: x, y: geometry.size.height))
+                        }
+                    }
+                }
+                .stroke(Color.white.opacity(0.6), lineWidth: 0.5)
+                
                 // Target goal line
-                let targetAmount = dataManager.targetAmount
-                if adjustedMin <= targetAmount && adjustedMax >= targetAmount {
+                if showGoal {
                     let goalY = geometry.size.height * (1 - (targetAmount - adjustedMin) / (adjustedMax - adjustedMin))
                     Path { path in
                         path.move(to: CGPoint(x: 0, y: goalY))
@@ -118,10 +142,34 @@ struct SimpleChartView: View {
                     }
                     .stroke(Color.orange, style: StrokeStyle(lineWidth: 2, dash: [10, 5]))
                     
+                    // Goal amount label
                     Text(dataManager.formattedTargetAmount)
                         .font(.caption)
                         .foregroundColor(.orange)
-                        .position(x: geometry.size.width - 40, y: goalY - 10)
+                        .position(x: geometry.size.width - 60, y: goalY - 10)
+                    
+                    // Target date label above goal line
+                    Text("Target: \(dataManager.formattedTargetDate)")
+                        .font(.caption2)
+                        .foregroundColor(.orange)
+                        .position(x: geometry.size.width - 80, y: goalY - 25)
+                }
+                
+                // Zero line (0 value marker)
+                if adjustedMin <= 0 && adjustedMax >= 0 {
+                    let zeroY = geometry.size.height * (1 - (0 - adjustedMin) / (adjustedMax - adjustedMin))
+                    Path { path in
+                        path.move(to: CGPoint(x: 0, y: zeroY))
+                        path.addLine(to: CGPoint(x: geometry.size.width, y: zeroY))
+                    }
+                    .stroke(Color.white, lineWidth: 1.5)
+                    
+                    // Zero label
+                    Text("\(dataManager.selectedCurrency.symbol)0")
+                        .font(.caption)
+                        .foregroundColor(.white)
+                        .fontWeight(.semibold)
+                        .position(x: -15, y: zeroY)
                 }
                 
                 // Data points and connecting lines
@@ -206,7 +254,7 @@ struct SimpleChartView: View {
             VStack {
                 ForEach(0..<5) { i in
                     let value = adjustedMax - (adjustedMax - adjustedMin) * Double(i) / 4
-                    Text("\(dataManager.selectedCurrency.symbol)\(Int(value))")
+                    Text(formatYAxisValue(value, currency: dataManager.selectedCurrency))
                         .font(.caption)
                         .foregroundColor(.secondary)
                     if i < 4 { Spacer() }
@@ -215,5 +263,18 @@ struct SimpleChartView: View {
             .frame(width: 40)
             .position(x: -20, y: geometry.size.height / 2)
         }
+    }
+    
+    private func formatYAxisValue(_ value: Double, currency: Currency) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .none
+        formatter.maximumFractionDigits = 0
+        formatter.minimumFractionDigits = 0
+        formatter.usesGroupingSeparator = true
+        
+        let intValue = Int(value.rounded())
+        let formattedNumber = formatter.string(from: NSNumber(value: intValue)) ?? "\(intValue)"
+        
+        return "\(currency.symbol)\(formattedNumber)"
     }
 }

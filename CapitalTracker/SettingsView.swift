@@ -5,14 +5,43 @@ struct SettingsView: View {
     @State private var targetAmountInput = ""
     @State private var selectedTargetDate = Date()
     @State private var hasInitialized = false
+    @State private var showResetConfirmation = false
+    let onBack: () -> Void
     
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Settings")
-                .font(.title2)
-                .fontWeight(.bold)
+        VStack(spacing: 0) {
+            // Fixed header with back button
+            HStack {
+                Button(action: onBack) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left")
+                        Text("Back")
+                    }
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.blue)
+                
+                Spacer()
+                
+                Text("Settings")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                
+                Spacer()
+                
+                // Invisible spacer to center the title
+                HStack(spacing: 4) {
+                    Image(systemName: "chevron.left")
+                    Text("Back")
+                }
+                .opacity(0)
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 16)
             
-            VStack(alignment: .leading, spacing: 16) {
+            // Scrollable content
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
                 // Current target display
                 HStack {
                     Text("Current Target:")
@@ -28,16 +57,17 @@ struct SettingsView: View {
                             .foregroundColor(.secondary)
                     }
                 }
-                .padding()
+                .padding(12)
                 .background(Color.orange.opacity(0.1))
                 .cornerRadius(8)
                 
                 Divider()
                 
                 // Currency selection
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text("Currency")
-                        .font(.headline)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
                     
                     Picker("Currency", selection: $dataManager.selectedCurrency) {
                         ForEach(Currency.allCases, id: \.self) { currency in
@@ -56,9 +86,10 @@ struct SettingsView: View {
                 Divider()
                 
                 // Target amount input
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text("Target Amount")
-                        .font(.headline)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
                     
                     HStack {
                         Text(dataManager.selectedCurrency.symbol)
@@ -82,9 +113,10 @@ struct SettingsView: View {
                 }
                 
                 // Target date picker
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text("Target Date")
-                        .font(.headline)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
                     
                     DatePicker("Select target date", selection: $selectedTargetDate, displayedComponents: .date)
                         .datePickerStyle(.compact)
@@ -98,51 +130,40 @@ struct SettingsView: View {
                 .buttonStyle(.borderedProminent)
                 .disabled(targetAmountInput.isEmpty)
                 
-                Spacer()
+                // Reset button at the bottom
+                Divider()
+                    .padding(.top, 20)
                 
-                // Progress info
-                if !dataManager.entries.isEmpty {
-                    let currentAmount = dataManager.entries.last?.amount ?? 0
-                    let progress = currentAmount / dataManager.targetAmount
-                    let remaining = dataManager.targetAmount - currentAmount
+                VStack(spacing: 12) {
+                    Text("Danger Zone")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.red)
                     
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Progress")
-                            .font(.headline)
-                        
-                        HStack {
-                            Text("Current:")
-                            Spacer()
-                            Text(dataManager.formatAmount(currentAmount))
-                                .fontWeight(.semibold)
-                        }
-                        
-                        HStack {
-                            Text("Remaining:")
-                            Spacer()
-                            Text(dataManager.formatAmount(remaining))
-                                .fontWeight(.semibold)
-                                .foregroundColor(remaining > 0 ? .red : .green)
-                        }
-                        
-                        HStack {
-                            Text("Progress:")
-                            Spacer()
-                            Text("\(String(format: "%.1f", progress * 100))%")
-                                .fontWeight(.semibold)
-                                .foregroundColor(progress >= 1.0 ? .green : .orange)
-                        }
-                        
-                        ProgressView(value: min(progress, 1.0))
-                            .progressViewStyle(LinearProgressViewStyle(tint: progress >= 1.0 ? .green : .orange))
+                    Button(action: {
+                        showResetConfirmation = true
+                    }) {
+                        Text("Reset All Data")
+                            .frame(maxWidth: .infinity)
+                            .foregroundColor(.white)
                     }
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(8)
+                    .buttonStyle(.borderedProminent)
+                    .tint(.red)
                 }
+                .padding(.top, 16)
+                }
+                .padding(.horizontal)
             }
         }
-        .padding()
+        .padding(.top)
+        .alert("Reset All Data", isPresented: $showResetConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Reset", role: .destructive) {
+                dataManager.resetAllData()
+            }
+        } message: {
+            Text("This will permanently delete all your capital entries, reset your target goal, and restore default settings. This action cannot be undone.")
+        }
         .onAppear {
             if !hasInitialized {
                 targetAmountInput = String(format: "%.2f", dataManager.targetAmount)
@@ -157,4 +178,5 @@ struct SettingsView: View {
         
         dataManager.updateTarget(amount: amount, date: selectedTargetDate)
     }
+    
 }
